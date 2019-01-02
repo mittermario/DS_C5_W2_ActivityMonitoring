@@ -1,0 +1,120 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(Hmisc)
+```
+
+## Read, process and summarize dataset
+
+```{r, echo = TRUE}
+activity_monitoring_data <- read.csv("data/activity.csv")
+activity_monitoring_data <- mutate(activity_monitoring_data, 
+                                   date = as.Date(date))
+head(activity_monitoring_data)
+str(activity_monitoring_data)
+summary(activity_monitoring_data)
+```
+
+## Total number of steps per day
+
+```{r, echo = TRUE}
+total_number_of_steps_per_day <- with(activity_monitoring_data, 
+                                      tapply(steps, date, sum, na.rm = TRUE))
+plot(total_number_of_steps_per_day, 
+     main = 'Total number of steps per day', 
+     xlab = paste('Day ( starting on ',as.character(names(total_number_of_steps_per_day)[1]),')'), ylab = 'Number of steps', 
+     type = 'h', lwd = 7, lend=1)
+```
+
+### Mean of total number of steps per day
+
+```{r, echo = TRUE}
+mean(total_number_of_steps_per_day, na.rm = TRUE)
+```
+
+### Median of total number of steps per day
+
+```{r, echo = TRUE}
+median(total_number_of_steps_per_day, na.rm = TRUE)
+```
+
+## Average daily activity pattern
+
+```{r, echo = TRUE}
+average_daily_activity_pattern <- with(activity_monitoring_data, 
+                                      tapply(steps, interval, mean, na.rm = TRUE))
+plot(names(average_daily_activity_pattern), average_daily_activity_pattern, 
+     main = 'Average daily activity pattern', 
+     xlab = 'Daily time interval [5 min]', ylab = 'Average daily number of steps', 
+     type = 'l', lwd = 1)
+```
+
+### Interval with maximal average daily number of steps and corresponding value
+
+```{r, echo = TRUE}
+average_daily_activity_pattern[which.max(as.numeric(average_daily_activity_pattern))]
+```
+
+## Imputing missing values
+
+### Total number of missing values in the dataset
+
+```{r, echo = TRUE}
+na_row_indices <- as.logical(rowSums(is.na(activity_monitoring_data)))
+sum(na_row_indices)
+```
+
+### Filling in missing values by mean of total number of steps
+
+```{r, echo = TRUE}
+activity_monitoring_data_imputed <- mutate(activity_monitoring_data, steps = impute(steps, mean))
+```
+
+### Imputing strategy increased/creates some of the total number of steps per day
+
+```{r, echo = TRUE}
+total_number_of_steps_per_day_imputed <- with(activity_monitoring_data_imputed, 
+                                      tapply(steps, date, sum, na.rm = TRUE))
+plot(total_number_of_steps_per_day_imputed, 
+     main = 'Total number of steps per day (imputed)', 
+     xlab = paste('Day ( starting on ',as.character(names(total_number_of_steps_per_day_imputed)[1]),')'), ylab = 'Number of steps', 
+     type = 'h', lwd = 7, lend=1)
+```
+
+### Imputing strategy increases mean and median slightly
+
+```{r, echo = TRUE}
+mean(total_number_of_steps_per_day_imputed, na.rm = TRUE)
+median(total_number_of_steps_per_day_imputed, na.rm = TRUE)
+```
+
+## Activity patterns: weekdays vs. weekends
+
+### Create new factor variable type.of.day with values "weekday" and "weekend"
+
+```{r, echo = TRUE}
+activity_monitoring_data <- mutate(activity_monitoring_data, type.of.day = "weekday")
+weekend_indices <- weekdays(activity_monitoring_data$date) %in% c("Saturday", "Sunday")
+activity_monitoring_data[weekend_indices, ]$type.of.day <- "weekend"
+activity_monitoring_data <- mutate(activity_monitoring_data, type.of.day = as.factor(type.of.day))
+```
+
+### Average daily activity pattern: weekdays vs. weekends
+
+```{r, echo = TRUE}
+par(oma = c(0, 0, 2, 0))
+par(mfrow = c(1, 2))
+average_daily_activity_pattern_weekday <- with(activity_monitoring_data[activity_monitoring_data$type.of.day == "weekday", ], 
+                                               tapply(steps, interval, mean, na.rm = TRUE))
+average_daily_activity_pattern_weekend <- with(activity_monitoring_data[activity_monitoring_data$type.of.day == "weekend", ], 
+                                               tapply(steps, interval, mean, na.rm = TRUE))
+plot(names(average_daily_activity_pattern_weekday), average_daily_activity_pattern_weekday, 
+     main = 'Weekdays', 
+     xlab = 'Daily time interval [5 min]', ylab = 'Average daily number of steps', 
+     type = 'l', lwd = 1, lty = 1)
+plot(names(average_daily_activity_pattern_weekend), average_daily_activity_pattern_weekend, 
+     main = 'Weekends', 
+     xlab = 'Daily time interval [5 min]', ylab = 'Average daily number of steps', 
+     type = 'l', lwd = 1, lty = 1)
+title("Average daily activity pattern", outer=TRUE)
+```
