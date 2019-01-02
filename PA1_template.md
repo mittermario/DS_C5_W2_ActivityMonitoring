@@ -187,11 +187,11 @@ average_daily_activity_pattern_weekend <- with(activity_monitoring_data[activity
 plot(names(average_daily_activity_pattern_weekday), average_daily_activity_pattern_weekday, 
      main = 'Weekdays', 
      xlab = 'Daily time interval [5 min]', ylab = 'Average daily number of steps', 
-     type = 'l', lwd = 1, lty = 1)
+     type = 'l', lwd = 1, lty = 1, ylim = c(0, 250))
 plot(names(average_daily_activity_pattern_weekend), average_daily_activity_pattern_weekend, 
      main = 'Weekends', 
      xlab = 'Daily time interval [5 min]', ylab = 'Average daily number of steps', 
-     type = 'l', lwd = 1, lty = 1)
+     type = 'l', lwd = 1, lty = 1, ylim = c(0, 250))
 title("Average daily activity pattern", outer=TRUE)
 ```
 
